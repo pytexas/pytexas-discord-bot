@@ -13,6 +13,7 @@ import os
 import sys
 
 import discord
+import requests
 
 from pytexbot.constants import (CONFERENCE_ORGANIZERS_ROLEID,
                                 CONFERENCE_2024_ATTENDEES_ROLEID,
@@ -124,6 +125,39 @@ async def checkin2024(interaction):
 
     # TODO: replace with app_commands.check.has_role?
     if organizer_role in interaction.user.roles:
+        await interaction.user.add_roles(attendee_role)
+
+    await interaction.response.send_message("Checked in!")
+
+
+@client.tree.command()
+async def register(interaction, attendee_email):
+    """Adds Conference Attendees Role to user.
+    /register my@email.here
+    Currently limited to users with Conference Organizers Role
+    """
+    print("Received /checkin_2024")
+
+    print(f"{interaction.guild}")
+    print(f"{interaction.channel}")
+    print(f"{interaction.user}")
+
+
+    attendee_role = (interaction.guild
+                                .get_role(CONFERENCE_2024_ATTENDEES_ROLEID))
+
+
+    print(f"{attendee_role}")
+
+    # get emails from pretix
+    pretix_api_token = "<insert token to play>"
+    pretix_api_url  = 'https://pretix.eu/api/v1/organizers/pytexas/events/2024/orders/'
+    headers = {'Authorization': f'Token {pretix_api_token}'}
+    response = requests.get(pretix_api_url, headers=headers)
+    attendee_data = response.json()
+    attendee_emails = [record['email'] for record in attendee_data['results']]
+
+    if attendee_email in attendee_emails:
         await interaction.user.add_roles(attendee_role)
 
     await interaction.response.send_message("Checked in!")
