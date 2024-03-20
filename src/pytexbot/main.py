@@ -144,9 +144,12 @@ async def checkin2024(interaction):
 
 @client.tree.command()
 async def register(interaction, attendee_email: str):
-    """Adds Conference Attendees Role to user.
+    """Adds Conference Attendees Role to users registered with PreTix.
 
     /register my@email.here
+
+    If the given email is registered for the conference in Pretix, then the
+    Conference Attendee Role will be added to the discord user.
 
     Currently limited to users with Conference Organizers Role
     """
@@ -164,10 +167,7 @@ async def register(interaction, attendee_email: str):
 
     # get emails from pretix
 
-    # TODO: cache this somehow?  for how long?
-    #       maybe not worth it?
     # TODO: replace requests with httpx for extra async-ness?
-    # get from env...see above ^^^
     pretix_api_url  = 'https://pretix.eu/api/v1/organizers/pytexas/events/2024/orders/'
     headers = {'Authorization': f'Token {pretix_api_token}'}
 
@@ -176,13 +176,15 @@ async def register(interaction, attendee_email: str):
     while pretix_api_url:
         response = requests.get(pretix_api_url, headers=headers)
         attendee_data = response.json()
-        attendee_emails += [record['email'] for record in attendee_data['results']]
+        attendee_emails += [record['email'] for record
+                                            in attendee_data['results']] # noqa
 
         print(f"got {len(attendee_emails)} attendee emails from pretix...")
 
         user_is_organizer = organizer_role in interaction.user.roles
 
-        if attendee_email in attendee_emails and user_is_organizer: # TODO: rm `and user_is_organizer` in prod
+        # TODO: remove `and user_is_organizer` in prod
+        if attendee_email in attendee_emails and user_is_organizer:
             print("user is in attendee email list!")
             await interaction.user.add_roles(attendee_role)
             user_found = True
@@ -190,12 +192,14 @@ async def register(interaction, attendee_email: str):
         else:
             pretix_api_url = attendee_data['next']
             print(f'{pretix_api_url}')
+
     print(f'total {len(attendee_emails)=}')
     if user_found:
         await interaction.response.send_message("Registered!")
     else:
         await interaction.response.send_message("Oh noes!  "
                                                 "I couldn't find your email!")
+
 
 # @client.tree.command(description="Check out 2024",
 #                   guild=pytexas_guild_obj)
