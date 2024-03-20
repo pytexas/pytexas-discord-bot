@@ -13,16 +13,27 @@ import os
 import sys
 
 import discord
+from dotenv import load_dotenv
 import requests
 
 from pytexbot.constants import (CONFERENCE_ORGANIZERS_ROLEID,
                                 CONFERENCE_2024_ATTENDEES_ROLEID,
                                 PYTEXAS_GUILD_ID)
 
+# Load config from environment or dotenv file
+load_dotenv()
+
 discord_token = os.getenv("DISCORD_TOKEN")
+if not discord_token:
+    sys.exit(f"Could not find DISCORD_TOKEN.  Exiting...")
+
 my_guild = os.getenv("DISCORD_GUILD")
-# "PyTexas"
+if not my_guild:
+    sys.exit(f"Could not find DISCORD_GUILD.  Exiting...")
+
 pretix_api_token = os.getenv("PRETIX_API_TOKEN")
+if not pretix_api_token:
+    sys.exit(f"Could not find PRETIX_API_TOKEN.  Exiting...")
 
 pytexas_guild_obj = discord.Object(id=PYTEXAS_GUILD_ID)
 print(f"global guild object? {pytexas_guild_obj} {type(pytexas_guild_obj)}")
