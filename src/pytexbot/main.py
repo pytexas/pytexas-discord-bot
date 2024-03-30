@@ -99,7 +99,8 @@ async def on_message(message):
     message_content = message.content.lower()
 
     if "ping" in message_content:
-        await message.channel.send("Pong!")
+        await message.channel.send("Pong!",
+                                   ephemeral=True)
 
 
 # @client.tree.command(description="Simple test command",
@@ -111,7 +112,8 @@ async def ping(interaction):
     print(f"{interaction.channel}")
     print(f"{interaction.user}")
 
-    await interaction.response.send_message("Pong!")
+    await interaction.response.send_message("Pong!",
+                                            ephemeral=True)
 
 
 # @client.tree.command(description="Check in 2024",
@@ -139,7 +141,8 @@ async def checkin2024(interaction):
     if organizer_role in interaction.user.roles:
         await interaction.user.add_roles(attendee_role)
 
-    await interaction.response.send_message("Checked in!")
+    await interaction.response.send_message("Checked in!",
+                                            ephemeral=True)
 
 
 @client.tree.command()
@@ -195,10 +198,12 @@ async def register(interaction, attendee_email: str):
 
     print(f'total {len(attendee_emails)=}')
     if user_found:
-        await interaction.response.send_message("Registered!")
+        await interaction.response.send_message("Registered!",
+                                                ephemeral=True)
     else:
         await interaction.response.send_message("Oh noes!  "
-                                                "I couldn't find your email!")
+                                                "I couldn't find your email!",
+                                                ephemeral=True)
 
 
 # @client.tree.command(description="Check out 2024",
@@ -226,7 +231,8 @@ async def checkout2024(interaction):
     if organizer_role in interaction.user.roles:
         await interaction.user.remove_roles(attendee_role)
 
-    await interaction.response.send_message("Checked out!")
+    await interaction.response.send_message("Checked out!",
+                                            ephemeral=True)
 
 
 def cli_main():
