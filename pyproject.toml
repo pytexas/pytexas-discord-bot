@@ -21,5 +21,15 @@ dependencies = [
 ]
 # dynamic = []
 
+[project.optional-dependencies]
+dev = [
+    "pip-tools"
+]
+# gui = ["PyQt5"]
+# cli = [
+#   "rich",
+#   "click",
+# ]
+
 [project.scripts]
 pytexbot-cli = "pytexbot.main:cli_main"
