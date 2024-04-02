@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools >= 63.1.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "pytexbot"
+description = ""
+readme = ""
+# do something better here...make version dynamic
+version = "0.0.0"
+# requires-python = ""
+# license = ""
+# classifiers = [
+
+# ]
+dependencies = [
+    "discord.py",
+    "python-dotenv",
+    "requests"
+]
+# dynamic = []
+
+[project.optional-dependencies]
+dev = [
+    "pip-tools"
+]
+# gui = ["PyQt5"]
+# cli = [
+#   "rich",
+#   "click",
+# ]
+
+[project.scripts]
+pytexbot-cli = "pytexbot.main:cli_main"
