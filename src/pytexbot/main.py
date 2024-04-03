@@ -147,6 +147,10 @@ async def register(interaction, attendee_email: str):
 
     user_found = False
     attendee_emails = []
+
+    print("Deferring response")
+    await interaction.response.defer(ephemeral=True)
+
     while pretix_api_url:
         response = requests.get(pretix_api_url, headers=headers)
         attendee_data = response.json()
@@ -169,12 +173,14 @@ async def register(interaction, attendee_email: str):
 
     print(f'total {len(attendee_emails)=}')
     if user_found:
-        await interaction.response.send_message("Registered!",
-                                                ephemeral=True)
+        print("User found, sending response")
+        await interaction.followup.send("Registered!",
+                                        ephemeral=True)
     else:
-        await interaction.response.send_message("Oh noes!  "
-                                                "I couldn't find your email!",
-                                                ephemeral=True)
+        print("User NOT found, sending response")
+        await interaction.followup.send("Oh noes!  "
+                                        "I couldn't find your email!",
+                                        ephemeral=True)
 
 
 def cli_main():
