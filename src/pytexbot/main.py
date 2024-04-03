@@ -116,35 +116,6 @@ async def ping(interaction):
                                             ephemeral=True)
 
 
-# @client.tree.command(description="Check in 2024",
-#                   guild=pytexas_guild_obj)
-@client.tree.command()
-async def checkin2024(interaction):
-    """Adds Conference Attendees Role to user.
-
-    Currently limited to users with Conference Organizers Role
-    """
-    print("Received /checkin_2024")
-
-    print(f"{interaction.guild}")
-    print(f"{interaction.channel}")
-    print(f"{interaction.user}")
-
-    organizer_role = interaction.guild.get_role(CONFERENCE_ORGANIZERS_ROLEID)
-    attendee_role = (interaction.guild
-                                .get_role(CONFERENCE_2024_ATTENDEES_ROLEID))
-
-    print(f"{organizer_role}")
-    print(f"{attendee_role}")
-
-    # TODO: replace with app_commands.check.has_role?
-    if organizer_role in interaction.user.roles:
-        await interaction.user.add_roles(attendee_role)
-
-    await interaction.response.send_message("Checked in!",
-                                            ephemeral=True)
-
-
 @client.tree.command()
 async def register(interaction, attendee_email: str):
     """Adds Conference Attendees Role to users registered with PreTix.
@@ -187,7 +158,7 @@ async def register(interaction, attendee_email: str):
         user_is_organizer = organizer_role in interaction.user.roles
 
         # TODO: remove `and user_is_organizer` in prod
-        if attendee_email in attendee_emails and user_is_organizer:
+        if attendee_email in attendee_emails:
             print("user is in attendee email list!")
             await interaction.user.add_roles(attendee_role)
             user_found = True
@@ -204,35 +175,6 @@ async def register(interaction, attendee_email: str):
         await interaction.response.send_message("Oh noes!  "
                                                 "I couldn't find your email!",
                                                 ephemeral=True)
-
-
-# @client.tree.command(description="Check out 2024",
-#                   guild=pytexas_guild_obj)
-@client.tree.command()
-async def checkout2024(interaction):
-    """Removes Conference Attendees Role from user.
-
-    Currently limited to users with Conference Organizers Role
-    """
-    print("Received /checkout_2024")
-
-    print(f"{interaction.guild}")
-    print(f"{interaction.channel}")
-    print(f"{interaction.user}")
-
-    organizer_role = interaction.guild.get_role(CONFERENCE_ORGANIZERS_ROLEID)
-    attendee_role = (interaction.guild
-                                .get_role(CONFERENCE_2024_ATTENDEES_ROLEID))
-
-    print(f"{organizer_role}")
-    print(f"{attendee_role}")
-
-    # TODO: replace with app_commands.check.has_role?
-    if organizer_role in interaction.user.roles:
-        await interaction.user.remove_roles(attendee_role)
-
-    await interaction.response.send_message("Checked out!",
-                                            ephemeral=True)
 
 
 def cli_main():
