@@ -50,7 +50,7 @@ class PyTexBotClient(discord.Client):
         self.tree = discord.app_commands.CommandTree(self)
         self.attendee_emails = []
         self.base_pretix_api_url = (
-            'https://pretix.eu/api/v1/organizers/pytexas/events/''2024/orders/'
+            'https://pretix.eu/api/v1/organizers/pytexas/events/2024/orders/'
         )
         self.headers = {"Authorization": f'Token {pretix_api_token}'}
 
