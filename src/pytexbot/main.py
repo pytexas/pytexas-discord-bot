@@ -75,7 +75,6 @@ class PyTexBotClient(discord.Client):
         self.attendee_emails = []
         pretix_api_url = self.base_pretix_api_url
         print("Fetching attendee emails from pretix API...")
-        # print(pretix_api_url)
         while pretix_api_url:
             print(f'{pretix_api_url}')
             response = requests.get(pretix_api_url, headers=self.headers)
