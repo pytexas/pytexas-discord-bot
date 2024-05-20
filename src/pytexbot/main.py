@@ -48,6 +48,11 @@ class PyTexBotClient(discord.Client):
         super().__init__(intents=intents)
 
         self.tree = discord.app_commands.CommandTree(self)
+        self.attendee_emails = []
+        self.base_pretix_api_url = (
+            'https://pretix.eu/api/v1/organizers/pytexas/events/2024/orders/'
+        )
+        self.headers = {"Authorization": f'Token {pretix_api_token}'}
 
     # In this basic example, we just synchronize the app commands to one guild.
     # Instead of specifying a guild to every command, we copy over our global
@@ -61,6 +66,26 @@ class PyTexBotClient(discord.Client):
         nlt = '\n\t'
         print(f"commands synced: {nlt}"
               f"{nlt.join((cmd.name + ':' + cmd.description) for cmd in cmds)}")
+
+    def build_attendee_emails_list(self):
+        """
+        Gets the list of all registered attendees' emails from pretix by paginating
+        through the API response.
+        """
+        self.attendee_emails = []
+        pretix_api_url = self.base_pretix_api_url
+        print("Fetching attendee emails from pretix API...")
+        while pretix_api_url:
+            print(f'{pretix_api_url}')
+            response = requests.get(pretix_api_url, headers=self.headers)
+            attendee_data = response.json()
+            self.attendee_emails += [record['email'] for record in
+                                attendee_data['results']]  # noqa
+            print(f"got {len(self.attendee_emails)} attendee emails from pretix...")
+            pretix_api_url = attendee_data['next']
+
+        print("Done fetching emails from pretix.")
+        print(f'total {len(self.attendee_emails)=}')
 
 
 intents = discord.Intents.default()
@@ -87,6 +112,9 @@ async def on_ready():
         f"{client.user} is connected to the following guild:\n"
         f"{guild.name}(id: {guild.id}) [{type(guild)}]\n"
     )
+
+    # Build initial attendee emails list
+    client.build_attendee_emails_list()
 
 
 @client.event
@@ -139,48 +167,36 @@ async def register(interaction, attendee_email: str):
 
     print(f"{attendee_role}")
 
-    # get emails from pretix
-
     # TODO: replace requests with httpx for extra async-ness?
-    pretix_api_url  = 'https://pretix.eu/api/v1/organizers/pytexas/events/2024/orders/'
-    headers = {'Authorization': f'Token {pretix_api_token}'}
-
-    user_found = False
-    attendee_emails = []
 
     print("Deferring response")
     await interaction.response.defer(ephemeral=True)
 
-    while pretix_api_url:
-        response = requests.get(pretix_api_url, headers=headers)
-        attendee_data = response.json()
-        attendee_emails += [record['email'] for record
-                                            in attendee_data['results']] # noqa
-
-        print(f"got {len(attendee_emails)} attendee emails from pretix...")
-
-        user_is_organizer = organizer_role in interaction.user.roles
-
-        # TODO: remove `and user_is_organizer` in prod
-        if attendee_email in attendee_emails:
-            print("user is in attendee email list!")
-            await interaction.user.add_roles(attendee_role)
-            user_found = True
-            break
-        else:
-            pretix_api_url = attendee_data['next']
-            print(f'{pretix_api_url}')
-
-    print(f'total {len(attendee_emails)=}')
-    if user_found:
-        print("User found, sending response")
-        await interaction.followup.send("Registered!",
-                                        ephemeral=True)
+    # Check if the provided email is in the attendee_emails list. If we can't find it
+    # immediately, re-build the list and check again. If the still can't be found,
+    # give up and send a response.
+    if attendee_email in client.attendee_emails:
+        print(
+            f"User with email {attendee_email} found in attendee email list, sending"
+            f" response."
+        )
+        await interaction.followup.send("Registered!", ephemeral=True)
     else:
-        print("User NOT found, sending response")
-        await interaction.followup.send("Oh noes!  "
-                                        "I couldn't find your email!",
-                                        ephemeral=True)
+        print(
+            f"User with {attendee_email} not found. "
+            f"Re-populating attendee email list."
+        )
+        client.build_attendee_emails_list()
+        if attendee_email in client.attendee_emails:
+            print(
+                f"{attendee_email} now found in attendee email list, sending response."
+            )
+            await interaction.followup.send("Registered!", ephemeral=True)
+        else:
+            print(f"{attendee_email} still not found. Giving up and sending response.")
+            await interaction.followup.send(
+                "Oh noes! I couldn't find your email!", ephemeral=True
+            )
 
 
 def cli_main():
