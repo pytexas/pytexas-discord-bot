@@ -77,12 +77,19 @@ class PyTexBotClient(discord.Client):
         print("Fetching attendee emails from pretix API...")
         while pretix_api_url:
             print(f'{pretix_api_url}')
-            response = requests.get(pretix_api_url, headers=self.headers)
-            attendee_data = response.json()
-            self.attendee_emails += [record['email'] for record in
-                                attendee_data['results']]  # noqa
-            print(f"got {len(self.attendee_emails)} attendee emails from pretix...")
-            pretix_api_url = attendee_data['next']
+            try:
+                response = requests.get(pretix_api_url, headers=self.headers)
+                response.raise_for_status()
+            except requests.HTTPError as e:
+                print(f"Error on request: {e}")
+                # bail out of loop here...
+                pretix_api_url = None
+            else:
+                attendee_data = response.json()
+                self.attendee_emails += [record['email'] for record in
+                                    attendee_data['results']]  # noqa
+                print(f"got {len(self.attendee_emails)} attendee emails from pretix...")
+                pretix_api_url = attendee_data['next']
 
         print("Done fetching emails from pretix.")
         print(f'total {len(self.attendee_emails)=}')
