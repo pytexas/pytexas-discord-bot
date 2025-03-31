@@ -1,0 +1,7 @@
+services:
+
+  pytexas-discord-bot:
+    build: ./
+    container_name: pytexas-discord-bot
+    env_file:
+      - ./.env

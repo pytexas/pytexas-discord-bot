@@ -15,3 +15,6 @@ docker-image: ## Build a docker image
 
 run-docker: ## Run the docker image from 'make docker-image'
 	docker run -it --env-file ./.env pytexbot
+
+run-detached: ## Run the docker image (detached) from 'make docker-image'
+	docker run -d --env-file ./.env pytexbot
