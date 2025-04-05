@@ -9,6 +9,7 @@ requires permissions:
 - Send Messages
 
 """
+
 import os
 import sys
 
@@ -16,9 +17,11 @@ import discord
 from dotenv import load_dotenv
 import requests
 
-from pytexbot.constants import (CONFERENCE_ORGANIZERS_ROLEID,
-                                CONFERENCE_2025_ATTENDEES_ROLEID,
-                                PYTEXAS_GUILD_ID)
+from pytexbot.constants import (
+    CONFERENCE_ORGANIZERS_ROLEID,
+    CONFERENCE_2025_ATTENDEES_ROLEID,
+    PYTEXAS_GUILD_ID,
+)
 
 # Load config from environment or dotenv file
 load_dotenv()
@@ -41,8 +44,7 @@ print(f"global guild object? {pytexas_guild_obj} {type(pytexas_guild_obj)}")
 
 # TODO: This is a refactoring of the above functions into a class...finish me!
 class PyTexBotClient(discord.Client):
-    """Client subclass representing our bot.
-    """
+    """Client subclass representing our bot."""
 
     def __init__(self, *, intents: discord.Intents):
         super().__init__(intents=intents)
@@ -50,9 +52,9 @@ class PyTexBotClient(discord.Client):
         self.tree = discord.app_commands.CommandTree(self)
         self.attendee_emails = []
         self.base_pretix_api_url = (
-            'https://pretix.eu/api/v1/organizers/pytexas/events/2025/orders/'
+            "https://pretix.eu/api/v1/organizers/pytexas/events/2025/orders/"
         )
-        self.headers = {"Authorization": f'Token {pretix_api_token}'}
+        self.headers = {"Authorization": f"Token {pretix_api_token}"}
 
     # In this basic example, we just synchronize the app commands to one guild.
     # Instead of specifying a guild to every command, we copy over our global
@@ -63,9 +65,11 @@ class PyTexBotClient(discord.Client):
         self.tree.copy_global_to(guild=pytexas_guild_obj)
         cmds = await self.tree.sync(guild=pytexas_guild_obj)
 
-        nlt = '\n\t'
-        print(f"commands synced: {nlt}"
-              f"{nlt.join((cmd.name + ':' + cmd.description) for cmd in cmds)}")
+        nlt = "\n\t"
+        print(
+            f"commands synced: {nlt}"
+            f"{nlt.join((cmd.name + ':' + cmd.description) for cmd in cmds)}"
+        )
 
     def build_attendee_emails_list(self):
         """
@@ -76,7 +80,7 @@ class PyTexBotClient(discord.Client):
         pretix_api_url = self.base_pretix_api_url
         print("Fetching attendee emails from pretix API...")
         while pretix_api_url:
-            print(f'{pretix_api_url}')
+            print(f"{pretix_api_url}")
             try:
                 response = requests.get(pretix_api_url, headers=self.headers)
                 response.raise_for_status()
@@ -86,13 +90,14 @@ class PyTexBotClient(discord.Client):
                 pretix_api_url = None
             else:
                 attendee_data = response.json()
-                self.attendee_emails += [record['email'] for record in
-                                    attendee_data['results']]  # noqa
+                self.attendee_emails += [
+                    record["email"].lower() for record in attendee_data["results"]
+                ]  # noqa
                 print(f"got {len(self.attendee_emails)} attendee emails from pretix...")
-                pretix_api_url = attendee_data['next']
+                pretix_api_url = attendee_data["next"]
 
         print("Done fetching emails from pretix.")
-        print(f'total {len(self.attendee_emails)=}')
+        print(f"total {len(self.attendee_emails)=}")
 
 
 intents = discord.Intents.default()
@@ -135,8 +140,7 @@ async def on_message(message):
     message_content = message.content.lower()
 
     if "ping" in message_content:
-        await message.channel.send("Pong!",
-                                   ephemeral=True)
+        await message.channel.send("Pong!", ephemeral=True)
 
 
 # @client.tree.command(description="Simple test command",
@@ -148,8 +152,7 @@ async def ping(interaction):
     print(f"{interaction.channel}")
     print(f"{interaction.user}")
 
-    await interaction.response.send_message("Pong!",
-                                            ephemeral=True)
+    await interaction.response.send_message("Pong!", ephemeral=True)
 
 
 @client.tree.command()
@@ -170,8 +173,7 @@ async def register(interaction, attendee_email: str):
     print(f"{interaction.user}")
 
     organizer_role = interaction.guild.get_role(CONFERENCE_ORGANIZERS_ROLEID)
-    attendee_role = (interaction.guild
-                                .get_role(CONFERENCE_2025_ATTENDEES_ROLEID))
+    attendee_role = interaction.guild.get_role(CONFERENCE_2025_ATTENDEES_ROLEID)
 
     print(f"{attendee_role}")
 
@@ -183,7 +185,7 @@ async def register(interaction, attendee_email: str):
     # Check if the provided email is in the attendee_emails list. If we can't find it
     # immediately, re-build the list and check again. If the still can't be found,
     # give up and send a response.
-    if attendee_email in client.attendee_emails:
+    if attendee_email.lower() in client.attendee_emails:
         print(
             f"User with email {attendee_email} found in attendee email list,"
             f" registering user."
