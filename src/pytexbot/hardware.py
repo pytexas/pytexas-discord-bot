@@ -10,6 +10,7 @@ import time
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 SERIAL_PORT = os.getenv('SERIAL_PORT', 'COM5')
+ALLOWED_CHANNEL_ID = os.getenv('ALLOWED_CHANNEL_ID') # NEW: Re-load from .env
 
 # 2. Setup Serial Connection
 try:
@@ -35,18 +36,27 @@ client = HardwareBot()
 @client.tree.command(name="wave", description="Send a long wave blink")
 @app_commands.checks.cooldown(1, 10.0, key=lambda i: i.user.id) # 1 use every 10s
 async def wave(interaction: discord.Interaction):
+    if ALLOWED_CHANNEL_ID and str(interaction.channel.id) != str(ALLOWED_CHANNEL_ID):
+        await interaction.response.send_message("❌ This command is not allowed in this channel.", ephemeral=True)
+        return
     arduino.write(b'W')
     await interaction.response.send_message(f"👋 {interaction.user.display_name} sent a wave!")
 
 @client.tree.command(name="love", description="Send fast blinks of love")
 @app_commands.checks.cooldown(1, 10.0, key=lambda i: i.user.id) # 1 use every 10s
 async def love(interaction: discord.Interaction):
+    if ALLOWED_CHANNEL_ID and str(interaction.channel.id) != str(ALLOWED_CHANNEL_ID):
+        await interaction.response.send_message("❌ This command is not allowed in this channel.", ephemeral=True)
+        return
     arduino.write(b'L')
     await interaction.response.send_message(f"❤️ {interaction.user.display_name} is sending love!")
 
 @client.tree.command(name="question", description="Send a pulse for a question")
 @app_commands.checks.cooldown(1, 10.0, key=lambda i: i.user.id)
 async def question(interaction: discord.Interaction):
+    if ALLOWED_CHANNEL_ID and str(interaction.channel.id) != str(ALLOWED_CHANNEL_ID):
+        await interaction.response.send_message("❌ This command is not allowed in this channel.", ephemeral=True)
+        return
     arduino.write(b'Q')
     await interaction.response.send_message(f"❓ {interaction.user.display_name} has a question!")
 
