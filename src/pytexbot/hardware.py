@@ -12,13 +12,21 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 SERIAL_PORT = os.getenv('SERIAL_PORT', 'COM5')
 ALLOWED_CHANNEL_ID = os.getenv('ALLOWED_CHANNEL_ID') # NEW: Re-load from .env
 
-# 2. Setup Serial Connection
-try:
-    arduino = serial.Serial(SERIAL_PORT, 9600, timeout=1)
-    time.sleep(2)
-    print(f"✅ Connected to Arduino on {SERIAL_PORT}!")
-except Exception as e:
-    print(f"❌ Hardware Error on {SERIAL_PORT}: {e}")
+# 2. Setup Serial Connection Utility
+__ARDUINO = None
+
+def get_arduino():
+    global __ARDUINO
+    if __ARDUINO is None:
+        try:
+            # Only init when first needed
+            __ARDUINO = serial.Serial(SERIAL_PORT, 9600, timeout=1)
+            time.sleep(2) # Allow Arduino to reset
+            print(f"✅ Connected to Arduino on {SERIAL_PORT}!")
+        except Exception as e:
+            print(f"❌ Hardware Error on {SERIAL_PORT}: {e}")
+            return None
+    return __ARDUINO
 
 # 3. Discord Bot Logic
 class HardwareBot(discord.Client):
@@ -39,8 +47,13 @@ async def wave(interaction: discord.Interaction):
     if ALLOWED_CHANNEL_ID and str(interaction.channel.id) != str(ALLOWED_CHANNEL_ID):
         await interaction.response.send_message("❌ This command is not allowed in this channel.", ephemeral=True)
         return
-    arduino.write(b'W')
-    await interaction.response.send_message(f"👋 {interaction.user.display_name} sent a wave!")
+    
+    arduino = get_arduino()
+    if arduino:
+        arduino.write(b'W')
+        await interaction.response.send_message(f"👋 {interaction.user.display_name} sent a wave!")
+    else:
+        await interaction.response.send_message("⚠️ Hardware not connected.", ephemeral=True)
 
 @client.tree.command(name="love", description="Send fast blinks of love")
 @app_commands.checks.cooldown(1, 10.0, key=lambda i: i.user.id) # 1 use every 10s
@@ -48,8 +61,13 @@ async def love(interaction: discord.Interaction):
     if ALLOWED_CHANNEL_ID and str(interaction.channel.id) != str(ALLOWED_CHANNEL_ID):
         await interaction.response.send_message("❌ This command is not allowed in this channel.", ephemeral=True)
         return
-    arduino.write(b'L')
-    await interaction.response.send_message(f"❤️ {interaction.user.display_name} is sending love!")
+    
+    arduino = get_arduino()
+    if arduino:
+        arduino.write(b'L')
+        await interaction.response.send_message(f"❤️ {interaction.user.display_name} is sending love!")
+    else:
+        await interaction.response.send_message("⚠️ Hardware not connected.", ephemeral=True)
 
 @client.tree.command(name="question", description="Send a pulse for a question")
 @app_commands.checks.cooldown(1, 10.0, key=lambda i: i.user.id)
@@ -57,8 +75,13 @@ async def question(interaction: discord.Interaction):
     if ALLOWED_CHANNEL_ID and str(interaction.channel.id) != str(ALLOWED_CHANNEL_ID):
         await interaction.response.send_message("❌ This command is not allowed in this channel.", ephemeral=True)
         return
-    arduino.write(b'Q')
-    await interaction.response.send_message(f"❓ {interaction.user.display_name} has a question!")
+    
+    arduino = get_arduino()
+    if arduino:
+        arduino.write(b'Q')
+        await interaction.response.send_message(f"❓ {interaction.user.display_name} has a question!")
+    else:
+        await interaction.response.send_message("⚠️ Hardware not connected.", ephemeral=True)
 
 # --- GLOBAL ERROR HANDLER ---
 # This one function handles the "Rate Limit" message for ALL commands above
