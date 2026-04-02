@@ -2,15 +2,21 @@ import os
 import asyncio
 import discord
 from discord import app_commands
+from discord.ext import tasks
 from dotenv import load_dotenv
 import serial
 import time
+from datetime import datetime
+
+from pytexbot.schedule_logic import get_next_session
+from pytexbot.schedule_data import CONFERENCE_DATA
 
 # 1. Load configuration from .env file
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 SERIAL_PORT = os.getenv('SERIAL_PORT', 'COM5')
 ALLOWED_CHANNEL_ID = os.getenv('ALLOWED_CHANNEL_ID') # NEW: Re-load from .env
+ANNOUNCEMENT_CHANNEL_ID = os.getenv('ANNOUNCEMENT_CHANNEL_ID')
 
 # 2. Setup Serial Connection Utility
 __ARDUINO = None
@@ -35,9 +41,67 @@ class HardwareBot(discord.Client):
         self.tree = app_commands.CommandTree(self)
 
     async def setup_hook(self):
+        if not session_announcer.is_running():
+            session_announcer.start()
         await self.tree.sync()
 
 client = HardwareBot()
+
+@client.tree.command(name="next", description="Find out which talk is coming up next!")
+async def next_talk(interaction: discord.Interaction):
+    talk, time_or_msg = get_next_session()
+
+    if not talk:
+        await interaction.response.send_message(time_or_msg, ephemeral=True)
+        return
+
+    embed = discord.Embed(
+        title=f"📅 Next Up: {time_or_msg}",
+        description=f"**{talk['title']}**",
+        color=0x3498db # PyTexas Blue
+    )
+    embed.add_field(name="Speaker", value=talk['speaker'], inline=True)
+    embed.add_field(name="About this talk", value=talk['desc'], inline=False)
+    embed.set_footer(text="PyTexas 2026 Virtual Assistant | /next for upcoming")
+
+    await interaction.response.send_message(embed=embed)
+
+# --- BACKGROUND TASKS ---
+
+@tasks.loop(seconds=60)
+async def session_announcer():
+    now = datetime.now().strftime("%H:%M")
+    today = datetime.now().strftime("%Y-%m-%d")
+    
+    if today in CONFERENCE_DATA and now in CONFERENCE_DATA[today]:
+        talk = CONFERENCE_DATA[today][now]
+        
+        # Use stored ID or try to find a channel named 'announcements'
+        channel_id = ANNOUNCEMENT_CHANNEL_ID
+        channel = None
+        if channel_id:
+            channel = client.get_channel(int(channel_id))
+        
+        if not channel:
+            for guild in client.guilds:
+                channel = discord.utils.get(guild.text_channels, name='announcements')
+                if channel: break
+
+        if channel:
+            embed = discord.Embed(
+                title="🔔 Session Starting Now!",
+                description=f"**{talk['title']}**",
+                color=0xffd700 # Gold
+            )
+            embed.add_field(name="Speaker", value=talk['speaker'], inline=True)
+            embed.add_field(name="Description", value=talk['desc'], inline=False)
+            
+            await channel.send(content="@everyone", embed=embed)
+            
+            # Optional: Wave the hardware when a session starts!
+            arduino = get_arduino()
+            if arduino:
+                arduino.write(b'W')
 
 # --- COMMANDS WITH COOLDOWNS ---
 
