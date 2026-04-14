@@ -20,6 +20,7 @@ import requests
 from pytexbot.constants import (
     CONFERENCE_ORGANIZERS_ROLEID,
     CONFERENCE_2025_ATTENDEES_ROLEID,
+    CONFERENCE_2026_ATTENDEES_ROLEID,
     PYTEXAS_GUILD_ID,
 )
 
@@ -52,7 +53,7 @@ class PyTexBotClient(discord.Client):
         self.tree = discord.app_commands.CommandTree(self)
         self.attendee_emails = []
         self.base_pretix_api_url = (
-            "https://pretix.eu/api/v1/organizers/pytexas/events/2025/orders/"
+            "https://pretix.eu/api/v1/organizers/pytexas/events/2026/orders/"
         )
         self.headers = {"Authorization": f"Token {pretix_api_token}"}
 
@@ -173,7 +174,7 @@ async def register(interaction, attendee_email: str):
     print(f"{interaction.user}")
 
     organizer_role = interaction.guild.get_role(CONFERENCE_ORGANIZERS_ROLEID)
-    attendee_role = interaction.guild.get_role(CONFERENCE_2025_ATTENDEES_ROLEID)
+    attendee_role = interaction.guild.get_role(CONFERENCE_2026_ATTENDEES_ROLEID)
 
     print(f"{attendee_role}")
 
