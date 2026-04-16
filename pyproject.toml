@@ -17,7 +17,8 @@ version = "0.0.0"
 dependencies = [
     "discord.py",
     "python-dotenv",
-    "requests"
+    "requests",
+    "pyserial"
 ]
 # dynamic = []
 
