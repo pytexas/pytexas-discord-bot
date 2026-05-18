@@ -23,6 +23,7 @@ from pytexbot.constants import (
     CONFERENCE_2026_ATTENDEES_ROLEID,
     PYTEXAS_GUILD_ID,
 )
+from pytexbot.handlers import send_welcome_dm
 
 # Load config from environment or dotenv file
 load_dotenv()
@@ -102,6 +103,7 @@ class PyTexBotClient(discord.Client):
 
 
 intents = discord.Intents.default()
+intents.members = True
 client = PyTexBotClient(intents=intents)
 
 # alias because reasons
@@ -129,6 +131,11 @@ async def on_ready():
     # Build initial attendee emails list
     client.build_attendee_emails_list()
     print("Ready!\n")
+
+
+@client.event
+async def on_member_join(member: discord.Member):
+    await send_welcome_dm(member)
 
 
 @client.event
