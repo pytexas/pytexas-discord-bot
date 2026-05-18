@@ -23,13 +23,18 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pip-tools"
+    "pip-tools",
+    "pytest",
+    "pytest-asyncio",
 ]
 # gui = ["PyQt5"]
 # cli = [
 #   "rich",
 #   "click",
 # ]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
 
 [project.scripts]
 pytexbot-cli = "pytexbot.main:cli_main"
