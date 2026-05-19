@@ -19,6 +19,9 @@ dependencies = [
     "python-dotenv",
     "requests"
 ]
+
+[tool.setuptools.package-data]
+pytexbot = ["conference_info.toml"]
 # dynamic = []
 
 [project.optional-dependencies]
