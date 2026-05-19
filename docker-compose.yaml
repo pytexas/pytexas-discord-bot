@@ -1,7 +1,12 @@
 services:
 
-  pytexas-discord-bot:
+  pytexbot:
     build: ./
     container_name: pytexas-discord-bot
     env_file:
       - ./.env
+    environment:
+      # Flush stdout/stderr immediately so `docker logs` shows output in real time
+      # instead of waiting for Python's default 8KB buffer to fill.
+      PYTHONUNBUFFERED: "1"
+    restart: unless-stopped
