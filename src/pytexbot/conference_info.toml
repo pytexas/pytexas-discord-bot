@@ -1,0 +1,14 @@
+[conference]
+name = "PyTexas 2027"
+start_date = 2027-04-16
+end_date = 2027-04-18
+location = "Austin, TX"
+website = "https://pytexas.org"
+description = "The annual Python community conference for Texas!"
+# tickets_url = "https://pretix.eu/pytexas/2027/"  # uncomment when available
+# tickets_open_date = 2027-01-01                    # uncomment when decided
+
+[cfp]
+open_date = 2026-10-01
+# close_date = 2026-12-01   # uncomment when decided
+# url = "https://pytexas.org/cfp"  # uncomment when the CFP page is live

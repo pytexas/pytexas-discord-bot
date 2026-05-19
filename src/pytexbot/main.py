@@ -24,6 +24,7 @@ from pytexbot.constants import (
     PYTEXAS_GUILD_ID,
 )
 from pytexbot.handlers import send_welcome_dm
+from pytexbot.conference_info import build_conference_embed
 
 # Load config from environment or dotenv file
 load_dotenv()
@@ -219,6 +220,14 @@ async def register(interaction, attendee_email: str):
             await interaction.followup.send(
                 "Oh noes! I couldn't find your email!", ephemeral=True
             )
+
+
+@client.tree.command(name="conference-info", description="Get info about the next PyTexas conference")
+async def conference_info(interaction):
+    """Show dates, CFP status, and links for the upcoming PyTexas conference."""
+    print("Received /conference-info")
+    embed = build_conference_embed()
+    await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
 def cli_main():
