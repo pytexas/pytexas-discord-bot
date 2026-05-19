@@ -52,7 +52,7 @@ def _load_config() -> ConferenceConfig:
 
 
 def _to_unix(d: date) -> int:
-    return int(datetime(d.year, d.month, d.day, tzinfo=timezone.utc).timestamp())
+    return int(datetime(d.year, d.month, d.day, 12, tzinfo=timezone.utc).timestamp())
 
 
 def build_conference_embed() -> discord.Embed:
